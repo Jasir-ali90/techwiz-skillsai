@@ -1,0 +1,29 @@
+# Railway deployment for the SkillSprint AI API (FastAPI).
+# Setup, variables and the pgvector database are described in README.md, "Deploying to Railway".
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+# Redeploy only when something the API image uses changes; frontend-only commits are skipped.
+watchPatterns = [
+  "src/**",
+  "migrations/**",
+  "config/**",
+  "prompt_templates/**",
+  "schemas/**",
+  "scripts/**",
+  "sample_documents/**",
+  "docker/**",
+  "Dockerfile",
+  "requirements.txt",
+  "alembic.ini",
+  "railway.toml",
+]
+
+[deploy]
+# docker/entrypoint.sh runs migrations and the seed, then uvicorn on $PORT.
+healthcheckPath = "/health"
+# The first boot also loads and embeds the demo corpus, so allow it time.
+healthcheckTimeout = 600
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

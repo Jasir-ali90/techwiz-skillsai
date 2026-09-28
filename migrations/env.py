@@ -11,7 +11,8 @@ from src.core.config import get_settings
 from src.models import Base
 
 config = context.config
-config.set_main_option("sqlalchemy.url", get_settings().database_url)
+# Alembic's ini parser treats % as interpolation, and generated passwords may contain it.
+config.set_main_option("sqlalchemy.url", get_settings().database_url.replace("%", "%%"))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

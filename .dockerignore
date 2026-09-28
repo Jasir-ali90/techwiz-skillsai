@@ -6,3 +6,7 @@ uploads
 .pytest_cache
 .git
 *.pyc
+.claude
+frontend
+tests
+docs/brand

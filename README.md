@@ -265,6 +265,32 @@ Periods of sleep also count as downtime against 99 % availability. This is handl
 3. Cold-start work is minimised: the model is inside the image, it is warmed at startup, and migrations are
    idempotent.
 
+### Deploying to Railway
+
+`railway.toml` builds the API from the `Dockerfile`, checks `GET /health` before routing traffic, and restarts on
+failure. Railway sets `PORT`, which the entrypoint passes to uvicorn.
+
+1. **Database.** Add a Postgres service that has pgvector, for example Railway's *pgvector* template (plain
+   Postgres fails the first migration at `CREATE EXTENSION vector`).
+2. **API.** Add a service from this GitHub repository. Railway picks up `railway.toml` from the repo root.
+3. **Variables** on the API service:
+
+   | Variable | Value |
+   |---|---|
+   | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (use your database service's name). The `postgresql://` form is converted to asyncpg automatically. |
+   | `SECRET_KEY` | 32+ random characters: `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
+   | `APP_ENV` | `production` |
+   | `CORS_ORIGINS` | The frontend's URL, e.g. `https://skillsprint-web.up.railway.app` (comma separated for several) |
+   | `SEED_ADMIN_PASSWORD`, `SEED_EVALUATOR_PASSWORD` | Your own values instead of the demo ones |
+   | `GENAI_PROVIDER` | `offline`, or a provider plus its key (`GENAI_API_KEY`, `GEMINI_API_KEY`, ...) |
+   | `BOOTSTRAP_DEMO` | `true` to load the Nexora Labs demo documents on start, otherwise leave unset |
+
+4. **Uploads.** Attach a volume mounted at `/app/uploads`, or uploaded documents vanish on every redeploy.
+5. **Domain.** Under *Networking*, generate a public domain. Then point the frontend at it with
+   `VITE_API_BASE=https://<api-domain>` when building it, and put the frontend's URL in `CORS_ORIGINS`.
+
+Give the service 1 GB of RAM or more: PyTorch and the embedding model load at start.
+
 ## Deviations from the brief (flagged, not silent)
 
 - **Missing module restored**: `src/security/adversarial.py` was imported by `parse_service.py` but did not exist.

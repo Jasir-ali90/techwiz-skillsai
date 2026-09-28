@@ -23,6 +23,7 @@ from src.api import (
     search,
     validation,
 )
+from src.core.config import get_settings
 from src.core.db import SessionLocal
 from src.core.exceptions import AppError
 
@@ -55,7 +56,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="SkillSprint AI", version="0.2.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          # tighten before deployment
+    # Set CORS_ORIGINS to the frontend's URL in production.
+    allow_origins=[o.strip() for o in get_settings().cors_origins.split(",") if o.strip()],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

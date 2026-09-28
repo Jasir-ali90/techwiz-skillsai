@@ -1,6 +1,6 @@
 # Security testing report
 
-Generated 2026-09-28 17:41 by `pytest tests/security`.
+Generated 2026-09-28 18:46 by `pytest tests/security`.
 
 | # | Category | Case | Expected | Observed | Result |
 |---|---|---|---|---|---|

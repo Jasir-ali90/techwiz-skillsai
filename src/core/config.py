@@ -14,6 +14,18 @@ class Settings(BaseSettings):
     app_env: str = "development"
     secret_key: str
     access_token_expire_minutes: int = 60
+    # Comma separated browser origins allowed to call the API; "*" allows any.
+    cors_origins: str = "*"
+
+    @field_validator("database_url")
+    @classmethod
+    def _async_driver(cls, value: str) -> str:
+        # Hosts such as Railway hand out postgres:// or postgresql:// URLs; the app talks through asyncpg.
+        for prefix in ("postgres://", "postgresql://"):
+            if value.startswith(prefix):
+                value = "postgresql+asyncpg://" + value[len(prefix):]
+        # asyncpg spells libpq's sslmode as ssl.
+        return value.replace("sslmode=", "ssl=")
 
     @field_validator("secret_key")
     @classmethod
