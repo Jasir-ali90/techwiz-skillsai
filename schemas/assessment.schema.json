@@ -1,0 +1,140 @@
+{
+  "$defs": {
+    "RubricCriterionOut": {
+      "additionalProperties": false,
+      "properties": {
+        "criterion": {
+          "title": "Criterion",
+          "type": "string"
+        },
+        "expected_performance": {
+          "title": "Expected Performance",
+          "type": "string"
+        },
+        "pass_condition": {
+          "title": "Pass Condition",
+          "type": "string"
+        },
+        "requirement_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requirement Code"
+        },
+        "weight": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Weight",
+          "type": "number"
+        }
+      },
+      "required": [
+        "criterion",
+        "weight",
+        "expected_performance",
+        "pass_condition"
+      ],
+      "title": "RubricCriterionOut",
+      "type": "object"
+    }
+  },
+  "$id": "https://skillsprint.ai/schemas/AssessmentOut",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assessment_type": {
+      "description": "PRACTICAL, WRITTEN, OBSERVATION or SIGN_OFF",
+      "title": "Assessment Type",
+      "type": "string"
+    },
+    "due_stage": {
+      "description": "Onboarding stage code, e.g. WEEK_1",
+      "title": "Due Stage",
+      "type": "string"
+    },
+    "mandatory": {
+      "title": "Mandatory",
+      "type": "boolean"
+    },
+    "passing_score": {
+      "maximum": 100,
+      "minimum": 0,
+      "title": "Passing Score",
+      "type": "number"
+    },
+    "priority": {
+      "enum": [
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ],
+      "title": "Priority",
+      "type": "string"
+    },
+    "requirement_code": {
+      "description": "Matrix requirement code, e.g. R012",
+      "title": "Requirement Code",
+      "type": "string"
+    },
+    "rubric": {
+      "items": {
+        "$ref": "#/$defs/RubricCriterionOut"
+      },
+      "title": "Rubric",
+      "type": "array"
+    },
+    "source_chunk_code": {
+      "description": "Chunk code, e.g. POL-INFOSEC-001#C004",
+      "title": "Source Chunk Code",
+      "type": "string"
+    },
+    "source_document_id": {
+      "description": "UUID of the cited document version",
+      "title": "Source Document Id",
+      "type": "string"
+    },
+    "source_section_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Section id inside the document, e.g. 2.3",
+      "title": "Source Section Id"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "topic": {
+      "title": "Topic",
+      "type": "string"
+    }
+  },
+  "required": [
+    "requirement_code",
+    "source_document_id",
+    "source_section_id",
+    "source_chunk_code",
+    "mandatory",
+    "priority",
+    "due_stage",
+    "title",
+    "assessment_type",
+    "topic",
+    "passing_score",
+    "rubric"
+  ],
+  "title": "AssessmentOut",
+  "type": "object"
+}

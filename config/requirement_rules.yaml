@@ -1,0 +1,192 @@
+# Requirement extraction rules (SRS Steps 10-11). Deterministic, no AI.
+# Every phrase list is a set of regular expressions matched case-insensitively
+# on word boundaries. Add a phrasing here and the next extraction picks it up.
+version: 1
+
+# Sentences that describe the document rather than oblige anyone.
+informational_markers:
+  - 'this policy (defines|describes|sets out|explains|covers)'
+  - 'this (procedure|document|page|section|sop) (defines|describes|sets out|explains|covers|applies)'
+  - 'the purpose of'
+  - 'this document'
+  - 'is read together with'
+  - 'these are the questions'
+  - 'is maintained by'
+  - 'is informal guidance'
+  - 'this version replaces'
+  - 'where this procedure conflicts'
+# Chunks under these headings are never requirements.
+informational_headings: ['summary of changes', 'about this document', 'revision history', 'document control']
+
+# Modal verb families, checked in order. The first family that matches wins,
+# so the specific families sit above the generic "must".
+modal_families:
+  - name: not_applicable
+    type: NOT_APPLICABLE
+    patterns: ['not applicable', 'does not apply', 'do not apply']
+  - name: must_acknowledge
+    type: MUST_ACKNOWLEDGE
+    patterns:
+      - '(must|shall|is required to|are required to) (formally |also )?(acknowledge|sign|confirm|accept)'
+  - name: must_demonstrate
+    type: MUST_DEMONSTRATE
+    patterns:
+      - '(must|shall|is required to|are required to) (be able to )?(demonstrate|perform|show|pass|hold)'
+  - name: must_complete
+    type: MUST_COMPLETE
+    patterns:
+      - '(must|shall|is required to|are required to) (complete|finish|submit|attend|enable|record|report|publish|request|sign off|attach|verify|ensure|work|authenticate|confirm)'
+      - '(must|shall) be (completed|submitted|recorded|reported|reviewed|logged|approved|scheduled|announced|rolled back|listed|granted)'
+  - name: must_know
+    type: MUST_KNOW
+    patterns:
+      - '(must|shall) (know|understand|be familiar with|be aware of|follow|comply with|adhere to)'
+  - name: prohibition
+    type: MUST_KNOW
+    patterns:
+      - '(must|shall|should) (not|never)'
+      - 'no .{0,40} shall'
+      - 'is (strictly )?prohibited'
+      - 'remains prohibited'
+      - 'are not permitted'
+      - '^(do not|never) '
+  - name: generic_mandatory
+    type: MUST_COMPLETE
+    patterns: ['must', 'shall', 'is required to', 'are required to', 'requires']
+  - name: recommended
+    type: RECOMMENDED
+    patterns: ['recommended', 'encouraged', 'should', 'it is advisable']
+  - name: optional
+    type: OPTIONAL
+    patterns: ['optional', 'may', 'can']
+
+exclusion_markers: ['not applicable', 'does not apply', 'except']
+condition_markers: ['if', 'where', 'unless', 'during', 'provided that', 'once', 'when']
+exception_markers: ['exception:', 'however', 'notwithstanding']
+
+priority_signals:
+  critical:
+    - 'immediately'
+    - 'within (24|twenty-four) hours'
+    - 'within (one|an|1) hour'
+    - 'within (thirty|30) minutes'
+    - 'before accessing'
+    - 'before being granted'
+    - 'severity 1'
+    - 'never'
+  high:
+    - 'within [a-z0-9-]+ (calendar |working )?days'
+    - 'first (thirty|sixty|ninety|30|60|90) days'
+    - 'before (the end of|receiving|running|promoting|a release|merge)'
+# Priority when no signal matched, per requirement type.
+default_priority: MEDIUM
+default_priority_by_type:
+  RECOMMENDED: LOW
+  OPTIONAL: LOW
+  NOT_APPLICABLE: LOW
+
+# Keyword to competency name. First match wins; otherwise the section heading.
+competency_keywords:
+  'production access|break-glass|production credentials|least-privilege': Production Access
+  'multi-factor|hardware security key|second factor|password|credential|session': Account Security
+  'secret|api key|connection string|secrets manager': Secrets Management
+  'pull request|repository|merge|commit|code review': Source Control
+  'secure coding': Secure Coding
+  'customer data|customer records|anonymised|data handling|personal device': Data Handling
+  'incident|breach|severity|phishing|near miss': Incident Response
+  'release|deploy|promot|rollback|rolled back|pipeline': Release Management
+  'migration|schema|database': Database Change Management
+  'regression|defect|qa |sign off': Quality Assurance
+  'client has been notified|user-facing workflow|stakeholder': Client Communication
+  'vendor|third-party tool|analytics vendor': Vendor Management
+  'information security basics|acknowledge this policy|security training': Security Awareness
+  'audit|compliance training|evidence': Compliance and Audit
+  'leave|holiday|absence': Leave and Absence
+  'conduct|harassment|conflict of interest|gift': Professional Conduct
+  'privacy|gdpr|personal data|consent': Data Privacy
+  'accessibility|design system|design token|wcag': Design Standards
+  'seo|search console|keyword|backlink|analytics': Search and Analytics
+  'escalat|on-call|ticket|support queue|sla': Support and Escalation
+  'dashboard|warehouse|report|sql|dataset': Data Analysis
+
+# Text that marks a requirement as a compliance obligation.
+compliance_markers: ['compliance', 'regulatory', 'legal', 'gdpr', 'audit', 'data handling declaration', 'vendor register']
+
+# A duration becomes an onboarding deadline only when the sentence anchors it
+# to the joining date. "Within one hour of discovery" is urgent, not staged.
+deadline_anchor_patterns:
+  - 'of (their|your|the) joining'
+  - 'joining date'
+  - 'of joining'
+  - 'first (thirty|sixty|ninety|30|60|90) days'
+  - 'first (week|fortnight|month)'
+  - 'from (their|your) start'
+
+# Deadline phrases the extractor converts to a day count.
+number_words:
+  one: 1
+  two: 2
+  three: 3
+  four: 4
+  five: 5
+  six: 6
+  seven: 7
+  eight: 8
+  nine: 9
+  ten: 10
+  fourteen: 14
+  fifteen: 15
+  twenty: 20
+  twenty-four: 24
+  thirty: 30
+  sixty: 60
+  ninety: 90
+
+# Role mapping.
+applies_to_all_markers:
+  - 'all employees'
+  - 'every employee'
+  - 'all staff'
+  - 'every member of staff'
+  - 'employees must'
+  - 'employees are'
+  - 'staff may'
+# "<department name> staff" style mentions map to every role in that department.
+department_mention_suffixes: ['staff', 'team', 'teams', 'department', 'employees', 'members']
+# A company-wide clause about an activity only some departments perform maps
+# to those departments (method DEPARTMENT_MATCH, reason names the phrase).
+# Skipped when the sentence says it applies to everyone.
+topic_departments:
+  - pattern: 'pull request|repositor(y|ies)|commit|merge|production service|production database|source code|coding assistant'
+    departments: [ENG, INFRA, QA]
+  - pattern: 'production access|production credentials|break-glass|standing production'
+    departments: [INFRA]
+  - pattern: 'engineering staff|engineers?\b'
+    departments: [ENG, INFRA, QA]
+# Priority boost for a requirement that names the role explicitly.
+explicit_mention_priority_boost: true
+# Extra phrasings for existing role codes. New roles are matched by title and
+# plural automatically, so this list is optional.
+role_aliases:
+  SW_INTERN: ['software interns?', 'interns?']
+  DEVOPS_ENG: ['devops engineers?']
+  QA_ENG: ['qa engineers?']
+  UIUX_DESIGNER: ['ui/ux designers?', 'designers?']
+  SEO_SPEC: ['seo specialists?']
+  SUPPORT_ENG: ['support engineers?', 'technical support engineers?']
+  PROJECT_MGR: ['project managers?']
+  BACKEND_DEV: ['backend developers?', 'backend engineers?']
+  FRONTEND_DEV: ['frontend developers?', 'frontend engineers?']
+  DATA_ANALYST: ['data analysts?']
+
+# Prerequisite detection.
+prerequisite_markers: ['before', 'prior to', 'once you have completed', 'once', 'after completing', 'after']
+# Verbs that make a requirement the provider of a named artefact.
+provider_verbs: ['complete', 'completion of', 'finish', 'pass', 'demonstrate', 'acknowledge', 'sign', 'attend']
+# Named artefacts ("Production Access Certification") end in one of these.
+artifact_suffixes: ['module', 'certification', 'assessment', 'declaration', 'basics', 'training', 'course', 'induction']
+# Basics before advanced, within one competency.
+competency_levels:
+  1: ['basics', 'fundamentals', 'introduction', 'induction', 'awareness']
+  2: ['intermediate', 'module', 'training']
+  3: ['advanced', 'certification', 'assessment']

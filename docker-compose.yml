@@ -1,0 +1,80 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: skillsprint_db
+    environment:
+      POSTGRES_USER: skillsprint
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-skillsprint}
+      POSTGRES_DB: skillsprint
+    ports: ["5432:5432"]
+    volumes: [skillsprint_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skillsprint -d skillsprint"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Full stack: docker compose --profile app up --build
+  api:
+    profiles: ["app"]
+    build: .
+    container_name: skillsprint_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://skillsprint:${POSTGRES_PASSWORD:-skillsprint}@db:5432/skillsprint
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      GENAI_PROVIDER: ${GENAI_PROVIDER:-offline}
+      GENAI_API_KEY: ${GENAI_API_KEY:-}
+      GENAI_MODEL: ${GENAI_MODEL:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      GENAI_FALLBACK_PROVIDERS: ${GENAI_FALLBACK_PROVIDERS:-}
+      # The local LLM below, reached by service name inside the compose network.
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434/v1}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
+      BOOTSTRAP_DEMO: ${BOOTSTRAP_DEMO:-true}
+      BOOTSTRAP_PLANS: ${BOOTSTRAP_PLANS:-false}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin@123}
+      SEED_EVALUATOR_PASSWORD: ${SEED_EVALUATOR_PASSWORD:-Evaluate@123}
+    ports: ["8000:8000"]
+    volumes: [skillsprint_uploads:/app/uploads]
+    restart: unless-stopped
+
+  # Lightweight local LLM, used as a free fallback: docker compose --profile llm up -d
+  # CPU by default; add -f docker-compose.gpu.yml to use an NVIDIA GPU.
+  ollama:
+    profiles: ["llm"]
+    image: ollama/ollama:latest
+    container_name: skillsprint_ollama
+    environment:
+      OLLAMA_CONTEXT_LENGTH: ${OLLAMA_CONTEXT_LENGTH:-12288}
+      OLLAMA_KEEP_ALIVE: 30m
+    ports: ["11434:11434"]
+    volumes: [skillsprint_ollama:/root/.ollama]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  # One-shot: downloads the model into the ollama volume, then exits.
+  ollama-pull:
+    profiles: ["llm"]
+    image: ollama/ollama:latest
+    container_name: skillsprint_ollama_pull
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-qwen2.5:3b}"]
+    restart: "no"
+
+volumes:
+  skillsprint_data:
+  skillsprint_uploads:
+  skillsprint_ollama:

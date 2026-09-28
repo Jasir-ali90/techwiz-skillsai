@@ -1,0 +1,21 @@
+# Quiz question types (SRS Steps 20-21). "Add a new quiz type" is a config
+# edit: add an entry here or PUT /config/quiz_types. The generator is told the
+# allowed list, and schema validation rejects any type not listed.
+version: 1
+types:
+  - code: MULTIPLE_CHOICE
+    description: One correct option among three or four
+    min_options: 3
+    max_correct: 1
+  - code: MULTIPLE_RESPONSE
+    description: Two or more correct options
+    min_options: 4
+    max_correct: 4
+  - code: TRUE_FALSE
+    description: A statement the learner marks true or false
+    min_options: 2
+    max_correct: 1
+  - code: SCENARIO
+    description: A short workplace situation with one best response
+    min_options: 3
+    max_correct: 1

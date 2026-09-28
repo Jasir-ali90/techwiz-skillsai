@@ -1,0 +1,7 @@
+.env
+__pycache__/
+.venv/
+uploads/
+.claude/
+# Test leftovers
+frontend/public/__e2e_*

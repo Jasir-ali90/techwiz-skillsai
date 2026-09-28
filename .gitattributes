@@ -1,0 +1,9 @@
+* text=auto
+# Shell scripts run inside Linux containers.
+*.sh text eol=lf
+# Never rewrite line endings in documents or images.
+*.pdf binary
+*.docx binary
+*.png binary
+*.ico binary
+*.webp binary

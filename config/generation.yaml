@@ -1,0 +1,85 @@
+# Pipeline 1 (generation) settings. Provider, model and key come from the
+# environment (Settings); everything here is overridable at runtime through
+# AppConfig key "generation".
+version: 1
+prompt_template: plan_generation
+default_prompt_version: v1
+module_template: module_regeneration
+
+retrieval:
+  per_requirement: 3          # chunks retrieved per requirement
+  min_similarity: 0.45        # below this a requirement or topic is a gap
+  max_prompt_chunks: 80
+
+retry:
+  max_attempts: 3             # hard cap, SRS Step 39
+  backoff_seconds: 1.0        # 1s, 2s, 4s ...
+  backoff_cap_seconds: 8.0
+
+parameters:
+  max_tokens: 16000
+  timeout_seconds: 120
+  # Recorded for consistency testing. Current Claude models fix sampling
+  # server-side, so these are logged but only sent to providers that accept them.
+  temperature: 0.0
+  seed: 42
+  effort: low                 # Claude output_config.effort; lower is faster
+
+# Fallback. When the primary provider (GENAI_PROVIDER) fails permanently or
+# exhausts its 3 attempts, the next provider in the chain is tried, each with
+# its own 3-attempt cap, so a generation makes at most 3 x len(chain) calls.
+# A provider whose key is not set is skipped. GENAI_FALLBACK_PROVIDERS in the
+# environment overrides this list ("none" disables fallback).
+fallback_chain: [gemini, ollama, offline]
+
+# OpenAI-compatible providers. The key is read from Settings (the environment),
+# never from here. Change a model with a config edit, no code change.
+providers:
+  gemini:                     # Google AI Studio free tier
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+    model: gemini-3.8-flash
+    key_setting: gemini_api_key
+    model_setting: gemini_model
+    max_tokens: 65536
+    json_mode: json_object
+  groq:                       # free tier: 8K tokens/minute, so full plans do not fit
+    base_url: https://api.groq.com/openai/v1
+    model: openai/gpt-oss-120b
+    key_setting: groq_api_key
+    max_tokens: 32000
+    json_mode: json_object
+    # Free-tier tokens-per-minute ceiling; larger prompts are skipped without a call. Raise or delete on a paid tier.
+    max_request_tokens: 8000
+  openrouter:
+    base_url: https://openrouter.ai/api/v1
+    model: google/gemini-3.8-flash:free
+    key_setting: openrouter_api_key
+    max_tokens: 32000
+    json_mode: json_object
+  ollama:                     # local and free: `docker compose --profile llm up -d` (see README)
+    base_url: http://localhost:11434/v1
+    base_url_setting: ollama_base_url   # OLLAMA_BASE_URL overrides, e.g. http://ollama:11434/v1 inside compose
+    model: qwen2.5:3b                   # ~1.9 GB; fits a 4 GB GPU or runs on CPU
+    model_setting: ollama_model
+    key_setting: ollama_api_key         # optional: only for an auth proxy in front of Ollama
+    key_optional: true
+    max_tokens: 4096
+    json_mode: json_schema              # constrained decoding: replies always match the output schema
+    timeout_seconds: 900                # local generation is slow; don't give up after 2 minutes
+    # The model's context window (OLLAMA_CONTEXT_LENGTH=12288 in compose, small enough to stay on a 4 GB GPU)
+    # minus room for the reply. A full plan prompt (~39K tokens) goes straight to the next provider;
+    # module rewrites (~6K tokens) fit.
+    max_request_tokens: 8000
+    limit_note: the local model's context window
+    local: true                         # /genai/status checks it is running and the model is pulled
+
+# Deterministic offline generator, used when GENAI_PROVIDER=offline.
+offline:
+  model: deterministic-template-v1
+  minutes_per_requirement: 15
+  # Stage sequence number by priority when a requirement has no explicit deadline.
+  priority_stage_sequence:
+    CRITICAL: 1
+    HIGH: 2
+    MEDIUM: 3
+    LOW: 5

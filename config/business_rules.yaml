@@ -1,0 +1,47 @@
+# Business rules checked against generated content, separate from the Matrix
+# (validation rule "business_rules"). Add a rule here or through
+# PUT /config/business_rules; no code change.
+#
+# Rule types:
+#   forbidden_pattern   regex that must not appear in item text
+#                       (optional roles: limit to role codes; unless: skip the
+#                       sentence if this regex is also present)
+#   deadline_stage      items for a requirement with a deadline must be due at a
+#                       stage whose offset_days is within that deadline
+#   critical_early      CRITICAL mandatory items due no later than max_sequence
+#   max_stage_share     no single stage may hold more than max_share of items
+version: 1
+rules:
+  - name: due_within_deadline
+    type: deadline_stage
+    severity: ERROR
+    message: Item is scheduled after the deadline its requirement sets
+  - name: critical_items_early
+    type: critical_early
+    max_sequence: 2
+    severity: WARNING
+    message: A critical mandatory item is scheduled late
+  - name: spread_across_stages
+    type: max_stage_share
+    max_share: 0.6
+    severity: WARNING
+    message: Too much of the plan is loaded onto one stage (SRS Step 13)
+  - name: interns_no_production_write
+    type: forbidden_pattern
+    roles: [SW_INTERN]
+    pattern: '(grant|request|obtain|give|use)\b.{0,40}\bwrite access to production'
+    unless: '\b(not|never|no|prohibited)\b'
+    severity: ERROR
+    message: Software Interns must never be given production write access
+  - name: no_credential_sharing
+    type: forbidden_pattern
+    pattern: '\b(share|send|post|paste)\b.{0,30}\b(password|credential|api key|secret)s?\b.{0,30}\b(chat|email|ticket|slack)'
+    unless: '\b(not|never|no)\b'
+    severity: ERROR
+    message: Credentials are shared through the secrets manager only
+  - name: no_customer_data_on_personal_devices
+    type: forbidden_pattern
+    pattern: '\b(copy|download|save|export)\b.{0,40}\bcustomer (data|records)\b.{0,40}\b(personal|laptop|usb|own device)'
+    unless: '\b(not|never|no)\b'
+    severity: ERROR
+    message: Customer data must not leave approved systems

@@ -1,0 +1,26 @@
+# Patterns that mark a chunk as a possible prompt-injection or manipulation
+# attempt (SRS Step 42). Matching chunks are stored as data, flagged, and
+# excluded from every generation prompt. Add a pattern here, no code change.
+version: 1
+patterns:
+  - name: ignore_instructions
+    regex: '\b(ignore|disregard|forget)\b.{0,40}\b(previous|prior|above|all)\b.{0,20}\b(instructions?|rules?|prompts?)\b'
+    reason: Attempts to override the system instructions
+  - name: system_note_to_assistant
+    regex: '\b(system (note|prompt|message)|note for the (automated|ai) (assistant|model)|automated onboarding assistant)\b'
+    reason: Addresses the AI directly rather than the reader
+  - name: force_verification
+    regex: '\b(mark|set|report)\b.{0,40}\b(covered|verified|approved|complete[d]?)\b.{0,40}\b(without|regardless)\b'
+    reason: Tries to force a verification outcome
+  - name: skip_validation
+    regex: '\b(approve|accept)\b.{0,40}\bwithout (any )?(validation|review|checks?)\b'
+    reason: Tries to bypass validation
+  - name: suppress_reporting
+    regex: '\bdo not (report|flag|mention|disclose)\b.{0,40}\b(missing|requirement|error|issue|finding)'
+    reason: Tries to suppress findings
+  - name: role_play
+    regex: '\byou are now\b|\bact as (an?|the) (admin|administrator|system)\b'
+    reason: Attempts to reassign the model's role
+  - name: exfiltration
+    regex: '\b(reveal|print|output|send)\b.{0,30}\b(api key|secret|password|system prompt|credentials)\b'
+    reason: Attempts to extract secrets

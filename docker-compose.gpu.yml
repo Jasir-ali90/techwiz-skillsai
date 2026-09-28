@@ -1,0 +1,12 @@
+# Optional: run the local LLM on an NVIDIA GPU (needs the NVIDIA driver and
+# Docker Desktop's WSL2 backend, or the NVIDIA Container Toolkit on Linux).
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml --profile llm up -d
+services:
+  ollama:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

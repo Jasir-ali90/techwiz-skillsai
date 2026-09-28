@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkillSprint API Console</title>
+<style>
+  :root{
+    --ink:#101418;
+    --paper:#fbfaf7;
+    --panel:#ffffff;
+    --line:#dcd8cf;
+    --muted:#6f7680;
+    --accent:#1b5e4a;
+    --accent-soft:#e6f0eb;
+    --warn:#8a5a00;
+    --err:#9b2226;
+    --ok:#1b5e4a;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--sans);font-size:14px;line-height:1.5}
+  header{border-bottom:1px solid var(--line);background:var(--panel);
+    padding:14px 20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+    position:sticky;top:0;z-index:10}
+  header h1{font-size:15px;margin:0;font-weight:650;letter-spacing:-0.01em}
+  header h1 span{color:var(--muted);font-weight:400}
+  .base{display:flex;align-items:center;gap:6px;margin-left:auto}
+  .base input{font-family:var(--mono);font-size:12px;padding:5px 8px;
+    border:1px solid var(--line);border-radius:4px;width:200px;background:var(--paper)}
+  .authchip{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:99px;
+    border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+  .authchip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+
+  main{display:grid;grid-template-columns:minmax(340px,1fr) minmax(340px,1fr);
+    min-height:calc(100vh - 57px)}
+  @media(max-width:900px){main{grid-template-columns:1fr}}
+  .left{border-right:1px solid var(--line);padding:18px 20px 60px}
+  .right{padding:18px 20px 60px;background:var(--panel)}
+  @media(max-width:900px){.left{border-right:none;border-bottom:1px solid var(--line)}}
+  @media(min-width:901px){.right{position:sticky;top:57px;align-self:start;
+    max-height:calc(100vh - 57px);overflow:auto}}
+
+  h2{font-size:11px;font-weight:650;color:var(--muted);margin:22px 0 10px;
+     letter-spacing:.04em;text-transform:uppercase}
+  h2:first-child{margin-top:0}
+
+  .ep{border:1px solid var(--line);border-radius:6px;background:var(--panel);
+    margin-bottom:8px;overflow:hidden}
+  .ep summary{cursor:pointer;padding:9px 11px;display:flex;gap:9px;align-items:center;
+    list-style:none;user-select:none}
+  .ep summary::-webkit-details-marker{display:none}
+  .ep summary:hover{background:var(--paper)}
+  .verb{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 6px;
+    border-radius:3px;min-width:48px;text-align:center}
+  .GET{background:#e8eef6;color:#1b4b7a}
+  .POST{background:var(--accent-soft);color:var(--accent)}
+  .PATCH{background:#fdf0dc;color:var(--warn)}
+  .path{font-family:var(--mono);font-size:12.5px}
+  .note{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+  .body{padding:0 11px 11px}
+  textarea{width:100%;font-family:var(--mono);font-size:12px;padding:8px;
+    border:1px solid var(--line);border-radius:4px;background:var(--paper);
+    resize:vertical;min-height:80px;color:var(--ink)}
+  input.seg,input.fld,select.fld{font-family:var(--mono);font-size:12px;padding:6px 8px;
+    border:1px solid var(--line);border-radius:4px;background:var(--paper);
+    width:100%;color:var(--ink)}
+  input[type=file]{font-family:var(--sans);font-size:12px;width:100%}
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+  @media(max-width:560px){.fields{grid-template-columns:1fr}}
+  .fields label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px}
+  .wide{grid-column:1 / -1}
+  .row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+  button{font-family:var(--sans);font-size:12.5px;font-weight:550;cursor:pointer;
+    padding:6px 13px;border-radius:5px;border:1px solid var(--accent);
+    background:var(--accent);color:#fff}
+  button:hover{filter:brightness(1.1)}
+  button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  button.ghost:hover{background:var(--paper);filter:none}
+  .hint{font-size:11.5px;color:var(--muted)}
+  .prefill{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .prefill button{font-family:var(--mono);font-size:11px;padding:4px 9px;
+    background:transparent;color:var(--accent);border-color:var(--line);font-weight:500}
+  .prefill button:hover{background:var(--accent-soft);filter:none}
+
+  .clip{border:1px solid var(--line);border-radius:6px;padding:10px 11px;
+    margin-bottom:14px;background:var(--panel)}
+  .clip .row{margin-top:6px}
+  .clip label{font-size:11.5px;color:var(--muted);display:block;margin-bottom:3px}
+  .clipgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media(max-width:560px){.clipgrid{grid-template-columns:1fr}}
+
+  .statusline{display:flex;gap:10px;align-items:baseline;font-family:var(--mono);
+    font-size:12px;margin-bottom:10px;padding-bottom:10px;
+    border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .code{font-weight:700}
+  .c2{color:var(--ok)} .c4{color:var(--warn)} .c5{color:var(--err)} .cE{color:var(--err)}
+  .checks{margin-bottom:12px}
+  .checks div{font-family:var(--mono);font-size:11.5px;padding:3px 0;display:flex;gap:8px}
+  .checks .mark{width:14px}
+  .pass .mark{color:var(--ok)} .fail .mark{color:var(--err)}
+  .fail{color:var(--err)}
+  pre{font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-word;
+    margin:0;background:var(--paper);border:1px solid var(--line);
+    border-radius:5px;padding:12px;max-height:50vh;overflow:auto}
+  .empty{color:var(--muted);font-size:13px;padding:14px 0}
+  .log{margin-top:22px}
+  .log ul{list-style:none;padding:0;margin:0;font-family:var(--mono);font-size:11.5px}
+  .log li{padding:4px 0;border-bottom:1px dotted var(--line);display:flex;gap:8px}
+  .log li span:last-child{color:var(--muted);margin-left:auto}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SkillSprint API Console <span>· Nexora Labs</span></h1>
+  <div class="base">
+    <label class="hint" for="baseUrl">Server</label>
+    <input id="baseUrl" value="http://localhost:8000">
+  </div>
+  <div class="authchip" id="authChip">No token</div>
+  <button class="ghost" id="clearToken">Sign out</button>
+</header>
+
+<main>
+  <section class="left">
+
+    <div class="clip">
+      <div class="clipgrid">
+        <div><label for="depId">Department id</label><input class="seg" id="depId" placeholder="uuid"></div>
+        <div><label for="roleId">Job role id</label><input class="seg" id="roleId" placeholder="uuid"></div>
+        <div><label for="stageId">Stage id</label><input class="seg" id="stageId" placeholder="uuid"></div>
+        <div><label for="empId">Employee id</label><input class="seg" id="empId" placeholder="uuid"></div>
+        <div class="wide"><label for="docId">Document id</label><input class="seg" id="docId" placeholder="uuid"></div>
+      </div>
+      <div class="row">
+        <button class="ghost" id="grabIds">Fill from last response</button>
+        <span class="hint">Puts the first id found into the next empty field.</span>
+      </div>
+    </div>
+
+    <h2>System</h2>
+    <details class="ep">
+      <summary><span class="verb GET">GET</span><span class="path">/health</span>
+        <span class="note">no auth</span></summary>
+      <div class="body"><div class="row">
+        <button data-send data-method="GET" data-path="/health">Send</button></div></div>
+    </details>
+
+    <h2>Authentication</h2>
+    <details class="ep" open>
+      <summary><span class="verb POST">POST</span><span class="path">/auth/login</span>
+        <span class="note">saves token</span></summary>
+      <div class="body">
+        <div class="prefill">
+          <button data-fill="admin@nexoralabs.io|Admin@123">admin</button>
+          <button data-fill="training@nexoralabs.io|Train@123">training</button>
+          <button data-fill="reviewer@nexoralabs.io|Review@123">reviewer</button>
+          <button data-fill="manager@nexoralabs.io|Manage@123">manager</button>
+          <button data-fill="employee@nexoralabs.io|Employ@123">employee</button>
+        </div>
+        <textarea id="loginBody">{
+  "email": "admin@nexoralabs.io",
+  "password": "Admin@123"
+}</textarea>
+        <div class="row">
+          <button data-send data-method="POST" data-path="/auth/login" data-src="loginBody" data-token>Send</button>
+          <span class="hint">Log in as employee to check a 403 on admin routes.</span>
+        </div>
+      </div>
+    </details>
+
+    <details class="ep">
+      <summary><span class="verb GET">GET</span><span class="path">/auth/me</span></summary>
+      <div class="body"><div class="row">
+        <button data-send data-method="GET" data-path="/auth/me">Send</button></div></div>
+    </details>
+
+    <h2>Documents</h2>
+    <details class="ep" open>
+      <summary><span class="verb POST">POST</span><span class="path">/documents</span>
+        <span class="note">file upload</span></summary>
+      <div class="body">
+        <div class="prefill">
+          <button data-doc="infosec1">InfoSec v1</button>
+          <button data-doc="infosec2">InfoSec v2</button>
+          <button data-doc="sop">Deploy SOP</button>
+          <button data-doc="faq">Engineering FAQ</button>
+        </div>
+        <p class="hint">Pick a preset, then choose the matching PDF from your
+          sample_documents folder.</p>
+        <div class="fields">
+          <div class="wide">
+            <label for="upFile">PDF or DOCX file</label>
+            <input type="file" id="upFile" accept=".pdf,.docx">
+          </div>
+          <div><label for="upCode">document_code</label>
+            <input class="fld" id="upCode" value="POL-INFOSEC-001"></div>
+          <div><label for="upVersion">version</label>
+            <input class="fld" id="upVersion" type="number" min="1" value="1"></div>
+          <div class="wide"><label for="upTitle">title</label>
+            <input class="fld" id="upTitle" value="Information Security Policy"></div>
+          <div><label for="upType">document_type</label>
+            <select class="fld" id="upType">
+              <option>HANDBOOK</option><option>HR_POLICY</option>
+              <option>LEAVE_POLICY</option><option selected>INFOSEC_POLICY</option>
+              <option>CONDUCT_POLICY</option><option>DATA_PRIVACY_POLICY</option>
+              <option>DEPARTMENT_SOP</option><option>ROLE_DESCRIPTION</option>
+              <option>PROCESS_DOCUMENT</option><option>FAQ</option>
+              <option>COMPLIANCE_INSTRUCTION</option><option>ESCALATION_PROCEDURE</option>
+            </select></div>
+          <div><label for="upEffective">effective_date</label>
+            <input class="fld" id="upEffective" type="date" value="2026-01-15"></div>
+          <div><label for="upExpiry">expiry_date (optional)</label>
+            <input class="fld" id="upExpiry" type="date"></div>
+          <div><label for="upDept">department_id (optional)</label>
+            <input class="fld" id="upDept" placeholder="uses Department id above"></div>
+          <div class="wide"><label for="upNotes">notes (optional)</label>
+            <input class="fld" id="upNotes" placeholder=""></div>
+        </div>
+        <div class="row">
+          <button id="uploadBtn">Upload</button>
+          <span class="hint">Validation results appear as a checklist on the right.</span>
+        </div>
+      </div>
+    </details>
+
+    <details class="ep" open>
+      <summary><span class="verb GET">GET</span><span class="path">/documents</span></summary>
+      <div class="body"><div class="row">
+        <button data-send data-method="GET" data-path="/documents">All</button>
+        <button class="ghost" data-send data-method="GET" data-path="/documents?status_filter=ACTIVE">Active only</button>
+        <button class="ghost" data-send data-method="GET" data-path="/documents?status_filter=OBSOLETE">Obsolete only</button>
+      </div></div>
+    </details>
+
+    <details class="ep">
+      <summary><span class="verb GET">GET</span><span class="path">/documents/{docId}</span></summary>
+      <div class="body"><div class="row">
+        <button data-send data-method="GET" data-path="/documents/{docId}">Send</button></div></div>
+    </details>
+
+    <details class="ep">
+      <summary><span class="verb GET">GET</span><span class="path">/documents/{docId}/versions</span>
+        <span class="note">version history</span></summary>
+      <div class="body"><div class="row">
+        <button data-send data-method="GET" data-path="/documents/{docId}/versions">Send</button></div></div>
+    </details>
+
+    <h2>Departments</h2>
+    <details class="ep">
+      <summary><span class="verb GET">GET</span><span class="path">/departments</span></summary>
+      <div class="body"><div class="row">
+        <button data-send data-method="GET" data-path="/departments">Send</button></div></div>
+    </details>
+    <details class="ep">
+      <summary><span class="verb POST">POST</span><span class="path">/departments</span>
+        <span class="note">admin</span></summary>
+      <div class="body">
+        <textarea id="depBody">{
+  "code": "SEC",
+  "name": "Security",
+  "description": "Application and infrastructure security"
+}</textarea>
+        <div class="row"><button data-send data-method="POST" data-path="/departments" data-src="depBody">Send</button></div>
+      </div>
+    </details>
+
+    <h2>Job roles</h2>
+    <details class="ep">
+      <summary><span class="verb GET">GET</span><span class="path">/roles</span></summary>
+      <div class="body"><div class="row">
+        <button data-send data-method="GET" data-path="/roles">All roles</button>
+        <button class="ghost" data-send data-method="GET" data-path="/roles?department_id={depId}">By department</button>
+      </div></div>
+    </details>
+    <details class="ep">
+      <summary><span class="verb POST">POST</span><span class="path">/roles</span>
+        <span class="note">hidden-role test</span></summary>
+      <div class="body">
+        <textarea id="roleBody">{
+  "code": "SEC_ENG",
+  "title": "Security Engineer",
+  "description": "Secures pipelines, code and cloud infrastructure",
+  "department_id": "{depId}"
+}</textarea>
+        <div class="row"><button data-send data-method="POST" data-path="/roles" data-src="roleBody">Send</button></div>
+      </div>
+    </details>
+    <details class="ep">
+      <summary><span class="verb PATCH">PATCH</span><span class="path">/roles/{roleId}</span></summary>
+      <div class="body">
+        <textarea id="rolePatch">{
+  "title": "Senior Security Engineer"
+}</textarea>
+        <div class="row"><button data-send data-method="PATCH" data-path="/roles/{roleId}" data-src="rolePatch">Send</button></div>
+      </div>
+    </details>
+
+    <h2>Onboarding stages</h2>
+    <details class="ep">
+      <summary><span class="verb GET">GET</span><span class="path">/stages</span></summary>
+      <div class="body"><div class="row">
+        <button data-send data-method="GET" data-path="/stages">Send</button></div></div>
+    </details>
+    <details class="ep">
+      <summary><span class="verb POST">POST</span><span class="path">/stages</span></summary>
+      <div class="body">
+        <textarea id="stageBody">{
+  "code": "DAY_120",
+  "name": "First 120 Days",
+  "sequence": 7,
+  "offset_days": 120
+}</textarea>
+        <div class="row"><button data-send data-method="POST" data-path="/stages" data-src="stageBody">Send</button></div>
+      </div>
+    </details>
+    <details class="ep">
+      <summary><span class="verb PATCH">PATCH</span><span class="path">/stages/{stageId}</span>
+        <span class="note">duration change</span></summary>
+      <div class="body">
+        <textarea id="stagePatch">{
+  "offset_days": 45
+}</textarea>
+        <div class="row"><button data-send data-method="PATCH" data-path="/stages/{stageId}" data-src="stagePatch">Send</button></div>
+      </div>
+    </details>
+
+    <h2>Employees</h2>
+    <details class="ep">
+      <summary><span class="verb GET">GET</span><span class="path">/employees</span></summary>
+      <div class="body"><div class="row">
+        <button data-send data-method="GET" data-path="/employees">All</button>
+        <button class="ghost" data-send data-method="GET" data-path="/employees?job_role_id={roleId}">By role</button>
+      </div></div>
+    </details>
+    <details class="ep">
+      <summary><span class="verb GET">GET</span><span class="path">/employees/{empId}</span></summary>
+      <div class="body"><div class="row">
+        <button data-send data-method="GET" data-path="/employees/{empId}">Send</button></div></div>
+    </details>
+    <details class="ep">
+      <summary><span class="verb POST">POST</span><span class="path">/employees</span></summary>
+      <div class="body">
+        <textarea id="empBody">{
+  "employee_code": "NX-1001",
+  "full_name": "Hamza Iqbal",
+  "job_role_id": "{roleId}",
+  "department_id": "{depId}",
+  "experience_level": "BEGINNER",
+  "joining_date": "2026-10-01",
+  "location": "Karachi",
+  "required_competencies": ["Git", "REST APIs", "Secure coding"],
+  "previous_experience": "Six-month university internship"
+}</textarea>
+        <div class="row"><button data-send data-method="POST" data-path="/employees" data-src="empBody">Send</button></div>
+      </div>
+    </details>
+    <details class="ep">
+      <summary><span class="verb PATCH">PATCH</span><span class="path">/employees/{empId}</span></summary>
+      <div class="body">
+        <textarea id="empPatch">{
+  "experience_level": "INTERMEDIATE",
+  "training_status": "IN_PROGRESS"
+}</textarea>
+        <div class="row"><button data-send data-method="PATCH" data-path="/employees/{empId}" data-src="empPatch">Send</button></div>
+      </div>
+    </details>
+
+    <div class="log">
+      <h2>Recent calls</h2>
+      <ul id="logList"><li><span class="hint">Nothing sent yet.</span></li></ul>
+    </div>
+  </section>
+
+  <section class="right">
+    <div id="statusline" class="statusline" hidden>
+      <span class="code" id="stCode"></span>
+      <span id="stText"></span>
+      <span id="stTime"></span>
+    </div>
+    <div id="checks" class="checks" hidden></div>
+    <pre id="output" class="empty">Pick an endpoint and press Send. The response shows here.</pre>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let token = sessionStorage.getItem("ss_token") || "";
+let lastRaw = "";
+
+const SEGMENTS = ["depId", "roleId", "stageId", "empId", "docId"];
+SEGMENTS.forEach(k => {
+  const saved = sessionStorage.getItem("ss_" + k);
+  if(saved) $(k).value = saved;
+  $(k).addEventListener("input", e => sessionStorage.setItem("ss_" + k, e.target.value.trim()));
+});
+
+const PRESETS = {
+  infosec1: {code:"POL-INFOSEC-001", title:"Information Security Policy",
+             type:"INFOSEC_POLICY", version:1, effective:"2026-01-15"},
+  infosec2: {code:"POL-INFOSEC-001", title:"Information Security Policy",
+             type:"INFOSEC_POLICY", version:2, effective:"2026-07-01"},
+  sop:      {code:"SOP-DEPLOY-007", title:"Deployment and Release Procedure",
+             type:"DEPARTMENT_SOP", version:1, effective:"2026-02-01"},
+  faq:      {code:"FAQ-ENG-002", title:"Engineering Onboarding FAQ",
+             type:"FAQ", version:1, effective:"2026-03-10"}
+};
+
+document.querySelectorAll("[data-doc]").forEach(b => {
+  b.onclick = () => {
+    const p = PRESETS[b.dataset.doc];
+    $("upCode").value = p.code;
+    $("upTitle").value = p.title;
+    $("upType").value = p.type;
+    $("upVersion").value = p.version;
+    $("upEffective").value = p.effective;
+  };
+});
+
+function fillPlaceholders(text){
+  return text.replace(/\{(\w+)\}/g, (m, key) => {
+    const el = $(key);
+    return el && el.value.trim() ? el.value.trim() : m;
+  });
+}
+
+function paintChip(){
+  const chip = $("authChip");
+  if(token){
+    chip.textContent = "Token " + token.slice(0, 10) + "\u2026";
+    chip.classList.add("on");
+  } else {
+    chip.textContent = "No token";
+    chip.classList.remove("on");
+  }
+}
+paintChip();
+
+$("clearToken").onclick = () => {
+  token = "";
+  sessionStorage.removeItem("ss_token");
+  paintChip();
+  show(null, "Signed out. Log in again to get a new token.");
+};
+
+$("grabIds").onclick = () => {
+  const found = lastRaw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+  if(!found){ show(null, "No id found in the last response. Send a GET first."); return; }
+  const target = SEGMENTS.find(k => !$(k).value.trim()) || "docId";
+  $(target).value = found[0];
+  sessionStorage.setItem("ss_" + target, found[0]);
+};
+
+function renderChecks(parsed){
+  const box = $("checks");
+  const list = parsed && (parsed.validation || (parsed.details && parsed.details.checks));
+  if(!Array.isArray(list)){ box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  box.innerHTML = list.map(c =>
+    '<div class="' + (c.passed ? "pass" : "fail") + '">' +
+    '<span class="mark">' + (c.passed ? "\u2713" : "\u2717") + '</span>' +
+    '<span>' + c.check + '</span><span>' + c.message + '</span></div>'
+  ).join("");
+}
+
+function show(meta, text, parsed){
+  const line = $("statusline");
+  if(meta){
+    line.hidden = false;
+    const c = $("stCode");
+    c.textContent = meta.status;
+    c.className = "code c" + String(meta.status)[0];
+    $("stText").textContent = meta.statusText || "";
+    $("stTime").textContent = meta.ms + " ms";
+  } else {
+    line.hidden = true;
+  }
+  renderChecks(parsed);
+  const out = $("output");
+  out.textContent = text;
+  out.classList.toggle("empty", !meta);
+}
+
+function logCall(method, path, status){
+  const list = $("logList");
+  if(list.querySelector(".hint")) list.innerHTML = "";
+  const li = document.createElement("li");
+  const cls = status === "ERR" ? "cE" : "c" + String(status)[0];
+  li.innerHTML = '<span class="' + cls + '">' + status + '</span>' +
+    '<span>' + method + ' ' + path + '</span>' +
+    '<span>' + new Date().toLocaleTimeString() + '</span>';
+  list.prepend(li);
+  while(list.children.length > 14) list.lastChild.remove();
+}
+
+async function request(method, path, opts){
+  const base = $("baseUrl").value.replace(/\/+$/, "");
+  const headers = Object.assign({}, opts.headers || {});
+  if(token) headers["Authorization"] = "Bearer " + token;
+  const started = performance.now();
+  try{
+    const res = await fetch(base + path, {method, headers, body: opts.body});
+    const ms = Math.round(performance.now() - started);
+    lastRaw = await res.text();
+    let parsed = null;
+    try { parsed = JSON.parse(lastRaw); } catch {}
+    if(opts.captureToken && parsed && parsed.access_token){
+      token = parsed.access_token;
+      sessionStorage.setItem("ss_token", token);
+      paintChip();
+    }
+    show({status:res.status, statusText:res.statusText, ms},
+         parsed ? JSON.stringify(parsed, null, 2) : (lastRaw || "(empty response)"),
+         parsed);
+    logCall(method, path, res.status);
+  } catch(err){
+    show({status:"ERR", statusText:"Request failed",
+          ms:Math.round(performance.now()-started)},
+      err.message + "\n\nUsual causes:\n" +
+      "\u00b7 uvicorn is not running on " + base + "\n" +
+      "\u00b7 CORS middleware is not enabled on the FastAPI app\n" +
+      "\u00b7 the server address above is wrong");
+    logCall(method, path, "ERR");
+  }
+}
+
+async function send(btn){
+  const method = btn.dataset.method;
+  const path = fillPlaceholders(btn.dataset.path);
+  if(path.includes("{")){
+    show(null, "Fill in the id fields at the top before sending " + path);
+    return;
+  }
+  const opts = {headers:{}, captureToken: btn.hasAttribute("data-token")};
+  if(btn.dataset.src){
+    const raw = fillPlaceholders($(btn.dataset.src).value.trim());
+    if(raw){
+      try { opts.body = JSON.stringify(JSON.parse(raw)); }
+      catch(e){
+        show({status:"ERR", statusText:"The request body is not valid JSON", ms:0}, e.message);
+        return;
+      }
+      opts.headers["Content-Type"] = "application/json";
+    }
+  }
+  btn.disabled = true;
+  await request(method, path, opts);
+  btn.disabled = false;
+}
+
+document.querySelectorAll("[data-send]").forEach(b => b.onclick = () => send(b));
+
+document.querySelectorAll("[data-fill]").forEach(b => {
+  b.onclick = () => {
+    const [email, password] = b.dataset.fill.split("|");
+    $("loginBody").value = JSON.stringify({email, password}, null, 2);
+  };
+});
+
+$("uploadBtn").onclick = async () => {
+  const file = $("upFile").files[0];
+  if(!file){ show(null, "Choose a PDF or DOCX file first."); return; }
+
+  const form = new FormData();
+  form.append("file", file);
+  form.append("document_code", $("upCode").value.trim());
+  form.append("title", $("upTitle").value.trim());
+  form.append("document_type", $("upType").value);
+  form.append("version", $("upVersion").value);
+  form.append("effective_date", $("upEffective").value);
+  if($("upExpiry").value) form.append("expiry_date", $("upExpiry").value);
+  const dept = $("upDept").value.trim() || $("depId").value.trim();
+  if(dept) form.append("department_id", dept);
+  if($("upNotes").value.trim()) form.append("notes", $("upNotes").value.trim());
+
+  $("uploadBtn").disabled = true;
+  await request("POST", "/documents", {body: form});
+  $("uploadBtn").disabled = false;
+};
+</script>
+</body>
+</html>

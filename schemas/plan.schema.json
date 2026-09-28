@@ -1,0 +1,748 @@
+{
+  "$defs": {
+    "AssessmentOut": {
+      "additionalProperties": false,
+      "properties": {
+        "assessment_type": {
+          "description": "PRACTICAL, WRITTEN, OBSERVATION or SIGN_OFF",
+          "title": "Assessment Type",
+          "type": "string"
+        },
+        "due_stage": {
+          "description": "Onboarding stage code, e.g. WEEK_1",
+          "title": "Due Stage",
+          "type": "string"
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "passing_score": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Passing Score",
+          "type": "number"
+        },
+        "priority": {
+          "enum": [
+            "CRITICAL",
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "requirement_code": {
+          "description": "Matrix requirement code, e.g. R012",
+          "title": "Requirement Code",
+          "type": "string"
+        },
+        "rubric": {
+          "items": {
+            "$ref": "#/$defs/RubricCriterionOut"
+          },
+          "title": "Rubric",
+          "type": "array"
+        },
+        "source_chunk_code": {
+          "description": "Chunk code, e.g. POL-INFOSEC-001#C004",
+          "title": "Source Chunk Code",
+          "type": "string"
+        },
+        "source_document_id": {
+          "description": "UUID of the cited document version",
+          "title": "Source Document Id",
+          "type": "string"
+        },
+        "source_section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Section id inside the document, e.g. 2.3",
+          "title": "Source Section Id"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "topic": {
+          "title": "Topic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement_code",
+        "source_document_id",
+        "source_section_id",
+        "source_chunk_code",
+        "mandatory",
+        "priority",
+        "due_stage",
+        "title",
+        "assessment_type",
+        "topic",
+        "passing_score",
+        "rubric"
+      ],
+      "title": "AssessmentOut",
+      "type": "object"
+    },
+    "ChecklistItemOut": {
+      "additionalProperties": false,
+      "properties": {
+        "activity": {
+          "title": "Activity",
+          "type": "string"
+        },
+        "due_stage": {
+          "description": "Onboarding stage code, e.g. WEEK_1",
+          "title": "Due Stage",
+          "type": "string"
+        },
+        "is_required": {
+          "title": "Is Required",
+          "type": "boolean"
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "priority": {
+          "enum": [
+            "CRITICAL",
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "requirement_code": {
+          "description": "Matrix requirement code, e.g. R012",
+          "title": "Requirement Code",
+          "type": "string"
+        },
+        "responsible_person": {
+          "description": "Employee, Manager, Buddy, IT, HR ...",
+          "title": "Responsible Person",
+          "type": "string"
+        },
+        "source_chunk_code": {
+          "description": "Chunk code, e.g. POL-INFOSEC-001#C004",
+          "title": "Source Chunk Code",
+          "type": "string"
+        },
+        "source_document_id": {
+          "description": "UUID of the cited document version",
+          "title": "Source Document Id",
+          "type": "string"
+        },
+        "source_section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Section id inside the document, e.g. 2.3",
+          "title": "Source Section Id"
+        }
+      },
+      "required": [
+        "requirement_code",
+        "source_document_id",
+        "source_section_id",
+        "source_chunk_code",
+        "mandatory",
+        "priority",
+        "due_stage",
+        "activity",
+        "is_required",
+        "responsible_person"
+      ],
+      "title": "ChecklistItemOut",
+      "type": "object"
+    },
+    "GapOut": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "requirement_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requirement Code"
+        },
+        "topic": {
+          "title": "Topic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "topic",
+        "reason"
+      ],
+      "title": "GapOut",
+      "type": "object"
+    },
+    "ModuleOut": {
+      "additionalProperties": false,
+      "properties": {
+        "assessment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssessmentOut"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assessment_summary": {
+          "title": "Assessment Summary",
+          "type": "string"
+        },
+        "category": {
+          "description": "Learning module category, usually the competency",
+          "title": "Category",
+          "type": "string"
+        },
+        "checklist": {
+          "items": {
+            "$ref": "#/$defs/ChecklistItemOut"
+          },
+          "title": "Checklist",
+          "type": "array"
+        },
+        "competency": {
+          "title": "Competency",
+          "type": "string"
+        },
+        "completion_criteria": {
+          "title": "Completion Criteria",
+          "type": "string"
+        },
+        "due_stage": {
+          "description": "Onboarding stage code, e.g. WEEK_1",
+          "title": "Due Stage",
+          "type": "string"
+        },
+        "estimated_duration_minutes": {
+          "minimum": 1,
+          "title": "Estimated Duration Minutes",
+          "type": "integer"
+        },
+        "key_concepts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Key Concepts",
+          "type": "array"
+        },
+        "learning_activities": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Learning Activities",
+          "type": "array"
+        },
+        "learning_objectives": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Learning Objectives",
+          "type": "array"
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "priority": {
+          "enum": [
+            "CRITICAL",
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "purpose": {
+          "title": "Purpose",
+          "type": "string"
+        },
+        "quiz": {
+          "items": {
+            "$ref": "#/$defs/QuizQuestionOut"
+          },
+          "title": "Quiz",
+          "type": "array"
+        },
+        "required_source_documents": {
+          "description": "Document codes",
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Source Documents",
+          "type": "array"
+        },
+        "requirement_code": {
+          "description": "Matrix requirement code, e.g. R012",
+          "title": "Requirement Code",
+          "type": "string"
+        },
+        "requirement_codes": {
+          "description": "Every requirement this module covers",
+          "items": {
+            "type": "string"
+          },
+          "title": "Requirement Codes",
+          "type": "array"
+        },
+        "scenarios": {
+          "items": {
+            "$ref": "#/$defs/ScenarioOut"
+          },
+          "title": "Scenarios",
+          "type": "array"
+        },
+        "source_chunk_code": {
+          "description": "Chunk code, e.g. POL-INFOSEC-001#C004",
+          "title": "Source Chunk Code",
+          "type": "string"
+        },
+        "source_document_id": {
+          "description": "UUID of the cited document version",
+          "title": "Source Document Id",
+          "type": "string"
+        },
+        "source_section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Section id inside the document, e.g. 2.3",
+          "title": "Source Section Id"
+        },
+        "tasks": {
+          "items": {
+            "$ref": "#/$defs/TaskOut"
+          },
+          "title": "Tasks",
+          "type": "array"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement_code",
+        "source_document_id",
+        "source_section_id",
+        "source_chunk_code",
+        "mandatory",
+        "priority",
+        "due_stage",
+        "title",
+        "category",
+        "competency",
+        "purpose",
+        "learning_objectives",
+        "key_concepts",
+        "required_source_documents",
+        "estimated_duration_minutes",
+        "learning_activities",
+        "assessment_summary",
+        "completion_criteria",
+        "requirement_codes",
+        "checklist",
+        "tasks",
+        "scenarios",
+        "quiz",
+        "assessment"
+      ],
+      "title": "ModuleOut",
+      "type": "object"
+    },
+    "QuizQuestionOut": {
+      "additionalProperties": false,
+      "properties": {
+        "correct_answer": {
+          "description": "Option text(s) that are correct",
+          "items": {
+            "type": "string"
+          },
+          "title": "Correct Answer",
+          "type": "array"
+        },
+        "difficulty": {
+          "enum": [
+            "BASIC",
+            "INTERMEDIATE",
+            "ADVANCED"
+          ],
+          "title": "Difficulty",
+          "type": "string"
+        },
+        "due_stage": {
+          "description": "Onboarding stage code, e.g. WEEK_1",
+          "title": "Due Stage",
+          "type": "string"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "options": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Options",
+          "type": "array"
+        },
+        "priority": {
+          "enum": [
+            "CRITICAL",
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "question": {
+          "title": "Question",
+          "type": "string"
+        },
+        "question_type": {
+          "description": "One of the configured quiz types",
+          "title": "Question Type",
+          "type": "string"
+        },
+        "requirement_code": {
+          "description": "Matrix requirement code, e.g. R012",
+          "title": "Requirement Code",
+          "type": "string"
+        },
+        "source_chunk_code": {
+          "description": "Chunk code, e.g. POL-INFOSEC-001#C004",
+          "title": "Source Chunk Code",
+          "type": "string"
+        },
+        "source_document_id": {
+          "description": "UUID of the cited document version",
+          "title": "Source Document Id",
+          "type": "string"
+        },
+        "source_section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Section id inside the document, e.g. 2.3",
+          "title": "Source Section Id"
+        }
+      },
+      "required": [
+        "requirement_code",
+        "source_document_id",
+        "source_section_id",
+        "source_chunk_code",
+        "mandatory",
+        "priority",
+        "due_stage",
+        "question_type",
+        "question",
+        "options",
+        "correct_answer",
+        "explanation",
+        "difficulty"
+      ],
+      "title": "QuizQuestionOut",
+      "type": "object"
+    },
+    "RubricCriterionOut": {
+      "additionalProperties": false,
+      "properties": {
+        "criterion": {
+          "title": "Criterion",
+          "type": "string"
+        },
+        "expected_performance": {
+          "title": "Expected Performance",
+          "type": "string"
+        },
+        "pass_condition": {
+          "title": "Pass Condition",
+          "type": "string"
+        },
+        "requirement_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Requirement Code"
+        },
+        "weight": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Weight",
+          "type": "number"
+        }
+      },
+      "required": [
+        "criterion",
+        "weight",
+        "expected_performance",
+        "pass_condition"
+      ],
+      "title": "RubricCriterionOut",
+      "type": "object"
+    },
+    "ScenarioOut": {
+      "additionalProperties": false,
+      "properties": {
+        "due_stage": {
+          "description": "Onboarding stage code, e.g. WEEK_1",
+          "title": "Due Stage",
+          "type": "string"
+        },
+        "expected_action": {
+          "title": "Expected Action",
+          "type": "string"
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "priority": {
+          "enum": [
+            "CRITICAL",
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "requirement_code": {
+          "description": "Matrix requirement code, e.g. R012",
+          "title": "Requirement Code",
+          "type": "string"
+        },
+        "situation": {
+          "title": "Situation",
+          "type": "string"
+        },
+        "source_chunk_code": {
+          "description": "Chunk code, e.g. POL-INFOSEC-001#C004",
+          "title": "Source Chunk Code",
+          "type": "string"
+        },
+        "source_document_id": {
+          "description": "UUID of the cited document version",
+          "title": "Source Document Id",
+          "type": "string"
+        },
+        "source_section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Section id inside the document, e.g. 2.3",
+          "title": "Source Section Id"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requirement_code",
+        "source_document_id",
+        "source_section_id",
+        "source_chunk_code",
+        "mandatory",
+        "priority",
+        "due_stage",
+        "title",
+        "situation",
+        "expected_action"
+      ],
+      "title": "ScenarioOut",
+      "type": "object"
+    },
+    "TaskOut": {
+      "additionalProperties": false,
+      "properties": {
+        "completion_criteria": {
+          "title": "Completion Criteria",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "difficulty": {
+          "enum": [
+            "BASIC",
+            "INTERMEDIATE",
+            "ADVANCED"
+          ],
+          "title": "Difficulty",
+          "type": "string"
+        },
+        "due_stage": {
+          "description": "Onboarding stage code, e.g. WEEK_1",
+          "title": "Due Stage",
+          "type": "string"
+        },
+        "expected_outcome": {
+          "title": "Expected Outcome",
+          "type": "string"
+        },
+        "mandatory": {
+          "title": "Mandatory",
+          "type": "boolean"
+        },
+        "priority": {
+          "enum": [
+            "CRITICAL",
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "title": "Priority",
+          "type": "string"
+        },
+        "requirement_code": {
+          "description": "Matrix requirement code, e.g. R012",
+          "title": "Requirement Code",
+          "type": "string"
+        },
+        "source_chunk_code": {
+          "description": "Chunk code, e.g. POL-INFOSEC-001#C004",
+          "title": "Source Chunk Code",
+          "type": "string"
+        },
+        "source_document_id": {
+          "description": "UUID of the cited document version",
+          "title": "Source Document Id",
+          "type": "string"
+        },
+        "source_section_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Section id inside the document, e.g. 2.3",
+          "title": "Source Section Id"
+        }
+      },
+      "required": [
+        "requirement_code",
+        "source_document_id",
+        "source_section_id",
+        "source_chunk_code",
+        "mandatory",
+        "priority",
+        "due_stage",
+        "description",
+        "expected_outcome",
+        "completion_criteria",
+        "difficulty"
+      ],
+      "title": "TaskOut",
+      "type": "object"
+    }
+  },
+  "$id": "https://skillsprint.ai/schemas/GeneratedPlan",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The plan envelope.",
+  "properties": {
+    "employee_code": {
+      "title": "Employee Code",
+      "type": "string"
+    },
+    "gaps": {
+      "items": {
+        "$ref": "#/$defs/GapOut"
+      },
+      "title": "Gaps",
+      "type": "array"
+    },
+    "modules": {
+      "items": {
+        "$ref": "#/$defs/ModuleOut"
+      },
+      "title": "Modules",
+      "type": "array"
+    },
+    "plan_title": {
+      "title": "Plan Title",
+      "type": "string"
+    },
+    "role_code": {
+      "title": "Role Code",
+      "type": "string"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "employee_code",
+    "role_code",
+    "plan_title",
+    "summary",
+    "modules",
+    "gaps"
+  ],
+  "title": "GeneratedPlan",
+  "type": "object"
+}

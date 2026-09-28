@@ -1,0 +1,14 @@
+# Registered on startup into the prompt_templates table, so the exact prompt
+# used for every generation is recorded (SRS Step 40). To change a prompt, add
+# a new versioned file and entry; never edit a released version in place.
+templates:
+  - name: plan_generation
+    version: v1
+    file: plan_generation_v1.j2
+    purpose: Generate a complete staged onboarding plan for one employee from the role's Matrix requirements and supporting excerpts.
+    output_schema: schemas/plan.schema.json
+  - name: module_regeneration
+    version: v1
+    file: module_regeneration_v1.j2
+    purpose: Rewrite only the modules affected by a policy change, from the new document version.
+    output_schema: schemas/module_regeneration.schema.json

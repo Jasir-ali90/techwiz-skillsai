@@ -1,0 +1,107 @@
+{
+  "$id": "https://skillsprint.ai/schemas/QuizQuestionOut",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "correct_answer": {
+      "description": "Option text(s) that are correct",
+      "items": {
+        "type": "string"
+      },
+      "title": "Correct Answer",
+      "type": "array"
+    },
+    "difficulty": {
+      "enum": [
+        "BASIC",
+        "INTERMEDIATE",
+        "ADVANCED"
+      ],
+      "title": "Difficulty",
+      "type": "string"
+    },
+    "due_stage": {
+      "description": "Onboarding stage code, e.g. WEEK_1",
+      "title": "Due Stage",
+      "type": "string"
+    },
+    "explanation": {
+      "title": "Explanation",
+      "type": "string"
+    },
+    "mandatory": {
+      "title": "Mandatory",
+      "type": "boolean"
+    },
+    "options": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Options",
+      "type": "array"
+    },
+    "priority": {
+      "enum": [
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ],
+      "title": "Priority",
+      "type": "string"
+    },
+    "question": {
+      "title": "Question",
+      "type": "string"
+    },
+    "question_type": {
+      "description": "One of the configured quiz types",
+      "title": "Question Type",
+      "type": "string"
+    },
+    "requirement_code": {
+      "description": "Matrix requirement code, e.g. R012",
+      "title": "Requirement Code",
+      "type": "string"
+    },
+    "source_chunk_code": {
+      "description": "Chunk code, e.g. POL-INFOSEC-001#C004",
+      "title": "Source Chunk Code",
+      "type": "string"
+    },
+    "source_document_id": {
+      "description": "UUID of the cited document version",
+      "title": "Source Document Id",
+      "type": "string"
+    },
+    "source_section_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Section id inside the document, e.g. 2.3",
+      "title": "Source Section Id"
+    }
+  },
+  "required": [
+    "requirement_code",
+    "source_document_id",
+    "source_section_id",
+    "source_chunk_code",
+    "mandatory",
+    "priority",
+    "due_stage",
+    "question_type",
+    "question",
+    "options",
+    "correct_answer",
+    "explanation",
+    "difficulty"
+  ],
+  "title": "QuizQuestionOut",
+  "type": "object"
+}

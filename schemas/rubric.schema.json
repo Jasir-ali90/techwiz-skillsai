@@ -1,0 +1,45 @@
+{
+  "$id": "https://skillsprint.ai/schemas/RubricCriterionOut",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "criterion": {
+      "title": "Criterion",
+      "type": "string"
+    },
+    "expected_performance": {
+      "title": "Expected Performance",
+      "type": "string"
+    },
+    "pass_condition": {
+      "title": "Pass Condition",
+      "type": "string"
+    },
+    "requirement_code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Requirement Code"
+    },
+    "weight": {
+      "maximum": 100,
+      "minimum": 0,
+      "title": "Weight",
+      "type": "number"
+    }
+  },
+  "required": [
+    "criterion",
+    "weight",
+    "expected_performance",
+    "pass_condition"
+  ],
+  "title": "RubricCriterionOut",
+  "type": "object"
+}

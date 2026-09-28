@@ -1,0 +1,45 @@
+# Progress assessment, weak areas and adaptive recommendations (SRS Steps 53-56).
+# Rule-based, not AI. All thresholds are editable at runtime (PUT /config/progress).
+version: 1
+
+# Weight of each unit type in overall progress.
+weights:
+  module: 1.0
+  checklist_item: 1.0
+  task: 2.0
+  quiz_question: 0.5
+  assessment: 2.0
+
+# status = actual progress / progress expected by today (from stage offsets).
+status:
+  on_track_ratio: 0.9
+  attention_ratio: 0.6
+
+weak_area:
+  quiz_accuracy_below: 0.7      # share of correct quiz attempts in a competency
+  min_quiz_attempts: 2
+  repeated_error_count: 2       # the same question answered wrongly this many times
+  overdue_incomplete_tasks: 1   # overdue tasks in a competency
+
+recommendations:
+  - when: low_quiz_accuracy
+    type: REVISION_MODULE
+    message: Revisit the {competency} module before retaking the quiz.
+  - when: repeated_error
+    type: ADDITIONAL_QUIZ
+    message: Take an extra quiz on {competency}; the same question was missed repeatedly.
+  - when: overdue_tasks
+    type: ADDITIONAL_TASK
+    message: Complete the overdue {competency} task with your buddy's help.
+  - when: failed_assessment
+    type: MANAGER_REVIEW
+    message: Book a review with your manager on {competency}; the assessment was not passed.
+  - when: behind_schedule
+    type: MANAGER_REVIEW
+    message: Overall progress is behind schedule; a manager check-in is recommended.
+  - when: strong_performance
+    type: ADVANCED_MODULE
+    message: Strong results in {competency}; an advanced module is suggested.
+strong_performance:
+  quiz_accuracy_at_least: 0.9
+  min_quiz_attempts: 2

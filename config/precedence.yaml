@@ -1,0 +1,31 @@
+# Lower rank wins a conflict. SRS Step 34 / FR xxxvii.
+version: 1
+description: >
+  Document precedence for Nexora Labs. When two documents disagree,
+  the one with the lower rank is authoritative.
+rules:
+  - rank: 10
+    document_types: [COMPLIANCE_INSTRUCTION]
+    reason: Regulatory and legal obligations override internal preference.
+  - rank: 20
+    document_types:
+      - INFOSEC_POLICY
+      - DATA_PRIVACY_POLICY
+      - CONDUCT_POLICY
+      - HR_POLICY
+      - LEAVE_POLICY
+    reason: Latest approved company policy.
+  - rank: 30
+    document_types: [DEPARTMENT_SOP, ESCALATION_PROCEDURE]
+    reason: Department procedure, subordinate to company policy.
+  - rank: 40
+    document_types: [PROCESS_DOCUMENT, ROLE_DESCRIPTION]
+    reason: Operational and role guidance.
+  - rank: 50
+    document_types: [HANDBOOK]
+    reason: Summary material, often lags the source policy.
+  - rank: 60
+    document_types: [FAQ]
+    reason: Informal guidance, lowest authority.
+default_rank: 50
+tie_breaker: latest_effective_date

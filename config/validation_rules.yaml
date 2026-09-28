@@ -1,0 +1,131 @@
+# Pipeline 2 rule set. Each rule can be switched off or re-tuned here or at
+# runtime with PUT /validation/rules. Adding a rule = one new rule class plus
+# an entry here. A rule missing from this file runs with its defaults.
+version: 1
+rules:
+  schema:
+    enabled: true
+  coverage:
+    enabled: true
+  traceability:
+    enabled: true
+  quiz_answers:
+    enabled: true
+    support_threshold: 0.40      # min support of the correct answer by its cited chunk
+    distractor_margin: 0.05      # a distractor this close to the answer's support is suspect
+  learning_sequence:
+    enabled: true
+  hallucination:
+    enabled: true
+    rule_claim_floor: 0.55       # a rule-like claim below this is unsupported
+    general_floor: 0.35          # an ordinary sentence below this is noted, not failed
+    lexical_support_floor: 0.75  # share of a claim's content words found in a source chunk
+  contradictions:
+    enabled: true
+    pair_similarity: 0.55        # chunk similarity before sentences are compared for numbers
+    polarity_similarity: 0.45    # chunk similarity before sentences are compared for permission
+    min_overlap: 0.6             # share of the shorter sentence's object terms found in the other
+    min_shared_terms: 2
+    numeric_min_jaccard: 0.55    # numeric conflicts also need this overlap across both sentences
+    resolved_severity: INFO      # a conflict the plan already resolves in favour of the winner (reported, counted)
+    # Words that never identify an obligation's object (added to built-in defaults).
+    generic_terms: []
+    # Sentences never compared: annotations and meta commentary.
+    ignore_sentence_patterns:
+      - '^deliberate (conflict|prompt-injection)'
+      - '^conflicts with '
+      - '^present so precedence'
+      - '^this version replaces'
+  duplicates:
+    enabled: true
+    threshold: 0.95
+  role_relevance:
+    enabled: true
+  checklist_completeness:
+    enabled: true
+  assessment_coverage:
+    enabled: true
+  competency_coverage:
+    enabled: true
+  business_rules:
+    enabled: true
+
+# Hallucination categories (SRS Steps 31-32).
+# 1. Plan mechanics: sentences about the plan itself. Always acceptable.
+plan_mechanics_patterns:
+  - 'quiz score'
+  - 'checklist items?'
+  - 'this module'
+  - 'the assessment'
+  - 'rubric'
+  - 'passing score'
+  - 'onboarding plan'
+  - 'quiz question'
+  - 'practical assessment'
+  - 'system of record'
+# 2. Claims about company rules. These must be supported by an active chunk.
+rule_claim_patterns:
+  - 'must'
+  - 'shall'
+  - 'required'
+  - 'mandatory'
+  - 'prohibited'
+  - 'never'
+  - 'not (allowed|permitted)'
+  - 'within [a-z0-9-]+ (minutes?|hours?|days?|weeks?|calendar days|working days)'
+  - 'at least'
+  - 'policy (says|states|requires)'
+  - 'deadline'
+  - 'only (via|through|with)'
+# 3. Reasonable instructional wording. Acceptable when it makes no rule claim.
+instructional_patterns:
+  - 'review (the|this) (module|material|section|document)'
+  - 'take notes'
+  - '(ask|discuss|check) with your (manager|buddy|supervisor|team)'
+  - '(ask|tell|inform) your (manager|buddy|supervisor)'
+  - 'raise it with your manager'
+  - 'read (the|section)'
+  - 'reflect on'
+  - 'practise'
+  - 'discuss anything unclear'
+  - 'confirmed by your manager'
+  - 'evidence that the requirement'
+  - 'learn and apply'
+  - 'explain and follow'
+  - 'decline, follow the documented rule'
+
+# Contradiction polarity words.
+permissive_patterns:
+  - 'is fine'
+  - 'are fine'
+  - 'usually fine'
+  - 'is allowed'
+  - 'are allowed'
+  - 'is acceptable'
+  - 'is permitted'
+  - 'yes,'
+  - 'go ahead'
+  - 'no problem'
+  - 'can use'
+  - 'may use'
+  - 'may'
+  - 'can'
+  - 'allowed to'
+  - 'permitted to'
+# A prohibition wins when both appear in one sentence ("may not").
+prohibitive_patterns:
+  - 'may not'
+  - 'cannot'
+  - 'can not'
+  - 'not allowed'
+  - 'never'
+  - 'must not'
+  - 'shall not'
+  - 'shall never'
+  - 'must never'
+  - 'no longer accepted'
+  - 'not accepted'
+  - 'prohibited'
+  - 'no [a-z ]{0,30} shall'
+  - 'not permitted'
+  - 'remains prohibited'
