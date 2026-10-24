@@ -1,24 +1,37 @@
 import { useState } from 'react'
-import { BookOpen, CheckCircle2, Clock, XCircle } from 'lucide-react'
+import { Award, BookOpen, CheckCircle2, Clock, XCircle } from 'lucide-react'
 import type { Json } from '../api/client'
 import { plans, progress } from '../api/endpoints'
 import { Badge, Button, Card, Empty, ErrorBox, Meter, PageHeader, Spinner, fmtDay, humanize } from '../components/ui'
 import { useAction, useQuery } from '../lib/hooks'
 import { SourceRef } from './PlanDetailPage'
 import { ProgressView } from './ProgressPage'
+import { CertificateModal } from '../components/CertificateModal'
+import { CodingSandbox } from '../components/CodingSandbox'
 
-/** The employee's own view: progress, their plan's modules, tick items off, take quizzes. */
+/** The employee's own view: progress, their plan's modules, tick items off, take quizzes, and technical sandbox. */
 export function MyOnboardingPage() {
   const dash = useQuery(() => progress.me())
   const planId = dash.data?.plan?.id
   const plan = useQuery(() => (planId ? plans.get(planId) : Promise.resolve(null)), [planId])
+  const [showCert, setShowCert] = useState(false)
+
   if (dash.loading && !dash.data) return <Spinner />
   if (dash.error) return <ErrorBox error={dash.error} onRetry={dash.reload} />
   const d = dash.data
   const refresh = () => { dash.reload(); plan.reload() }
+
   return (
     <div className="stack">
-      <PageHeader title={`Welcome, ${d.employee.name.split(' ')[0]}`} subtitle={`${d.employee.role} in ${d.employee.department}. You joined on ${fmtDay(d.employee.joining_date)}.`} />
+      <PageHeader
+        title={`Welcome, ${d.employee.name.split(' ')[0]}`}
+        subtitle={`${d.employee.role} in ${d.employee.department}. You joined on ${fmtDay(d.employee.joining_date)}.`}
+        actions={
+          <Button variant="primary" onClick={() => setShowCert(true)} style={{ gap: 7 }}>
+            <Award size={16} /> View Verifiable Certificate
+          </Button>
+        }
+      />
       <ProgressView dash={d} self />
       {!planId && (
         <Card><Empty icon={BookOpen} title="Your plan is on its way">Your training manager hasn't created your onboarding plan yet. It will appear here as soon as it's ready.</Empty></Card>
@@ -29,6 +42,14 @@ export function MyOnboardingPage() {
             {plan.data.modules.map((m: Json) => <MyModule key={m.id} module={m} onChange={refresh} />)}
           </div>
         </Card>
+      )}
+
+      {/* Interactive Hands-On Role Sandbox */}
+      <CodingSandbox roleCode={d.employee.role_code || 'BACKEND_DEV'} employeeId={d.employee.id} />
+
+      {/* Certificate Modal */}
+      {showCert && (
+        <CertificateModal employeeId={d.employee.id} onClose={() => setShowCert(false)} />
       )}
     </div>
   )

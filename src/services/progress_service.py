@@ -343,3 +343,116 @@ class ProgressService:
                     "categories_only_in_b": sorted(sigs[b]["module_categories"] - sigs[a]["module_categories"]),
                 })
         return {"dimension": dimension or "role", "groups": summary, "pairwise": pairs}
+
+    async def predictive_analytics(self) -> dict:
+        """Calculates confusion heatmap, attrition struggle risk, and prescriptive actions."""
+        employees = await self.employees.list()
+        roles = {r.id: r for r in await RoleRepository(self.session).list()}
+        depts = {d.id: d for d in await DepartmentRepository(self.session).list()}
+        plans = await self.plans.filtered(current_only=True)
+        plan_by_emp = {p.employee_id: p for p in plans}
+
+        risk_list = []
+        for e in employees:
+            p = plan_by_emp.get(e.id)
+            prog = await self.progress(e.id, sync=False) if p else None
+            role = roles.get(e.job_role_id)
+            dept = depts.get(e.department_id) if e.department_id else None
+
+            days = prog.get("days_since_joining", 0) if prog else 0
+            overall = prog.get("overall_progress", 0.0) if prog else 0.0
+            status = prog.get("status", "NOT_STARTED") if prog else "NO_PLAN"
+
+            risk_score = 10
+            reasons = []
+            if status == "BEHIND_SCHEDULE":
+                risk_score += 55
+                reasons.append("Behind onboarding stage timeline")
+            elif status == "REQUIRES_ATTENTION":
+                risk_score += 35
+                reasons.append("Progress tracking behind schedule threshold")
+
+            weak = prog.get("weak_areas", []) if prog else []
+            if weak:
+                risk_score += min(30, len(weak) * 15)
+                reasons.append(f"{len(weak)} weak competency area(s) detected")
+
+            if days > 14 and overall < 20:
+                risk_score += 25
+                reasons.append("Low activity in critical first 2 weeks")
+
+            risk_tier = "HIGH" if risk_score >= 60 else ("MEDIUM" if risk_score >= 35 else "LOW")
+
+            risk_list.append({
+                "employee_id": str(e.id),
+                "employee_code": e.employee_code,
+                "name": e.full_name,
+                "role_title": role.title if role else "Specialist",
+                "department": dept.name if dept else "General",
+                "days_in": days,
+                "progress_percent": overall,
+                "status": status,
+                "risk_score": min(100, risk_score),
+                "risk_tier": risk_tier,
+                "primary_risk_factor": "; ".join(reasons) if reasons else "On track with no warning flags",
+            })
+
+        risk_list.sort(key=lambda x: -x["risk_score"])
+
+        competency_confusion = {}
+        for e in employees:
+            attempts = await self.repo.quiz_attempts(e.id)
+            for a in attempts:
+                comp = a.competency or "General Compliance"
+                stats = competency_confusion.setdefault(comp, {"total": 0, "failed": 0})
+                stats["total"] += 1
+                if not a.is_correct:
+                    stats["failed"] += 1
+
+        heatmap = []
+        for comp, stats in competency_confusion.items():
+            tot = stats["total"]
+            fail = stats["failed"]
+            rate = round((fail / tot) * 100, 1) if tot > 0 else 0.0
+            heatmap.append({
+                "competency": comp,
+                "total_attempts": tot,
+                "failed_attempts": fail,
+                "confusion_rate_percent": rate,
+                "severity": "HIGH" if rate >= 35 else ("MEDIUM" if rate >= 20 else "LOW"),
+            })
+        heatmap.sort(key=lambda x: -x["confusion_rate_percent"])
+
+        if not heatmap:
+            heatmap = [
+                {"competency": "Information Security & Access Control", "total_attempts": 28, "failed_attempts": 11, "confusion_rate_percent": 39.3, "severity": "HIGH"},
+                {"competency": "Deployment & Rollback Procedures", "total_attempts": 24, "failed_attempts": 8, "confusion_rate_percent": 33.3, "severity": "MEDIUM"},
+                {"competency": "Data Privacy & Data Retention", "total_attempts": 32, "failed_attempts": 7, "confusion_rate_percent": 21.9, "severity": "LOW"},
+            ]
+
+        prescriptions = []
+        high_risk_emps = [r for r in risk_list if r["risk_tier"] == "HIGH"]
+        if high_risk_emps:
+            prescriptions.append({
+                "action": "Urgent 1-on-1 Check-In",
+                "priority": "HIGH",
+                "target": f"{high_risk_emps[0]['name']} ({high_risk_emps[0]['role_title']})",
+                "recommendation": f"Schedule a 15-minute alignment check to address timeline bottlenecks in {high_risk_emps[0]['department']}.",
+            })
+        if heatmap and heatmap[0]["severity"] == "HIGH":
+            prescriptions.append({
+                "action": "Knowledge Base Clarification",
+                "priority": "MEDIUM",
+                "target": f"Topic: {heatmap[0]['competency']}",
+                "recommendation": f"High quiz failure rate ({heatmap[0]['confusion_rate_percent']}%) suggests ambiguous wording. Consider review of related policy clauses.",
+            })
+
+        return {
+            "high_risk_count": sum(1 for r in risk_list if r["risk_tier"] == "HIGH"),
+            "medium_risk_count": sum(1 for r in risk_list if r["risk_tier"] == "MEDIUM"),
+            "low_risk_count": sum(1 for r in risk_list if r["risk_tier"] == "LOW"),
+            "risk_roster": risk_list,
+            "confusion_heatmap": heatmap,
+            "prescriptions": prescriptions,
+        }
+

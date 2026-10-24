@@ -89,6 +89,17 @@ async def role_matrix(
     return await MatrixService(session).role_matrix(job_role_id)
 
 
+@router.get("/matrix/skill-tree/{job_role_id}")
+async def skill_tree(
+    job_role_id: uuid.UUID,
+    session: AsyncSession = Depends(get_session),
+    _=Depends(get_current_user),
+):
+    """Hierarchical DAG skill tree nodes and edges for visual rendering."""
+    return await MatrixService(session).skill_tree(job_role_id)
+
+
+
 @router.get("/requirements")
 async def list_requirements(
     requirement_type: RequirementType | None = None,

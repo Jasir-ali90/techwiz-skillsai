@@ -82,3 +82,10 @@ async def role_dashboards(session: AsyncSession = Depends(get_session), _=Depend
 @router.get("/dashboard/role/{job_role_id}")
 async def role_dashboard(job_role_id: uuid.UUID, session: AsyncSession = Depends(get_session), _=Depends(STAFF)):
     return await ProgressService(session).role_dashboard(job_role_id)
+
+
+@router.get("/dashboard/predictive-analytics")
+async def predictive_analytics(session: AsyncSession = Depends(get_session), _=Depends(STAFF)):
+    """Predictive attrition struggle risk, confusion heatmaps, and manager interventions."""
+    return await ProgressService(session).predictive_analytics()
+

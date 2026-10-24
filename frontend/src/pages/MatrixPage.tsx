@@ -7,20 +7,42 @@ import { Alert, Badge, Button, Card, Empty, Field, JsonView, KeyValue, Modal, Pa
 import { GENERATORS, useAuth } from '../lib/auth'
 import { useAction, useQuery } from '../lib/hooks'
 
+import { SkillTreeVisualizer } from '../components/SkillTreeVisualizer'
+
 export function MatrixPage() {
   const [tab, setTab] = useState('build')
   const [code, setCode] = useState<string | null>(null)
   return (
     <div>
       <PageHeader title="Requirements" subtitle="Everything each role must learn, read from company documents by fixed rules. Every plan is checked against this list, so the AI never marks its own work." />
-      <Tabs active={tab} onChange={setTab} tabs={[{ id: 'build', label: 'Summary', icon: LayoutGrid }, { id: 'role', label: 'By role', icon: Users }, { id: 'requirements', label: 'All requirements', icon: List }]} />
+      <Tabs active={tab} onChange={setTab} tabs={[
+        { id: 'build', label: 'Summary', icon: LayoutGrid },
+        { id: 'role', label: 'By role', icon: Users },
+        { id: 'skilltree', label: 'Interactive Skill Tree', icon: GitBranch },
+        { id: 'requirements', label: 'All requirements', icon: List }
+      ]} />
       {tab === 'build' && <BuildPanel />}
       {tab === 'role' && <RoleMatrix onOpen={setCode} />}
+      {tab === 'skilltree' && <SkillTreeTab />}
       {tab === 'requirements' && <Requirements onOpen={setCode} />}
       {code && <RequirementModal code={code} onClose={() => setCode(null)} />}
     </div>
   )
 }
+
+function SkillTreeTab() {
+  const [roleId, setRoleId] = useState('')
+  const q = useQuery(() => (roleId ? matrix.role(roleId) : Promise.resolve(null)), [roleId])
+  return (
+    <div className="stack">
+      <Card title="Skill Tree Role Selector" actions={<div style={{ width: 260 }}><RoleSelect value={roleId} onChange={setRoleId} /></div>}>
+        {!roleId && <Empty icon={GitBranch} title="Select a Role">Choose a role from the dropdown above to explore its interactive dependency graph.</Empty>}
+        {roleId && q.data && <SkillTreeVisualizer roleId={roleId} roleTitle={q.data.role_title} />}
+      </Card>
+    </div>
+  )
+}
+
 
 function BuildPanel() {
   const { can } = useAuth()

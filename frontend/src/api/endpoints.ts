@@ -46,6 +46,7 @@ export const matrix = {
   resolveConflicts: () => api.post('/matrix/resolve-conflicts'),
   summary: () => api.get('/matrix/summary'),
   role: (id: string) => api.get(`/matrix/role/${id}`),
+  skillTree: (id: string) => api.get(`/matrix/skill-tree/${id}`),
   requirements: (q?: Json) => api.get('/requirements', q),
   requirement: (code: string) => api.get(`/requirements/${code}`),
   patchRequirement: (code: string, b: Json) => api.patch(`/requirements/${code}`, b),
@@ -92,6 +93,7 @@ export const progress = {
   admin: () => api.get('/dashboard/admin'),
   roles: () => api.get('/dashboard/roles'),
   role: (id: string) => api.get(`/dashboard/role/${id}`),
+  predictiveAnalytics: () => api.get('/dashboard/predictive-analytics'),
 }
 
 export const impact = {
@@ -121,4 +123,26 @@ export const genai = {
   test: (provider: string) => api.post(`/genai/test/${provider}`),
 }
 
+export const copilot = {
+  ask: (b: { question: string; role_id?: string; employee_id?: string }) => api.post('/copilot/ask', b),
+}
+
+export const sandbox = {
+  challenges: (roleCode = 'BACKEND_DEV') => api.get('/sandbox/challenges', { role_code: roleCode }),
+  evaluate: (b: { challenge_id: string; code: string; employee_id?: string }) => api.post('/sandbox/evaluate', b),
+}
+
+export const certificates = {
+  issue: (employeeId: string) => api.get(`/certificates/issue/${employeeId}`),
+  verify: (certId: string) => api.get(`/certificates/verify/${certId}`),
+  download: (employeeId: string) => api.download(`/certificates/download/${employeeId}`, `Nexora_Certificate_${employeeId}.pdf`),
+}
+
+export const webhooks = {
+  getConfig: () => api.get('/webhooks/config'),
+  updateConfig: (b: Json) => api.put('/webhooks/config', b),
+  test: (b: { webhook_url: string; provider: string }) => api.post('/webhooks/test', b),
+}
+
 export const health = () => api.get('/health')
+

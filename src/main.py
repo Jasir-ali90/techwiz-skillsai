@@ -10,7 +10,9 @@ from sqlalchemy.exc import DBAPIError, InterfaceError, OperationalError
 
 from src.api import (
     auth,
+    certificates,
     config,
+    copilot,
     document,
     genai,
     impact,
@@ -20,8 +22,10 @@ from src.api import (
     progress,
     reports,
     review,
+    sandbox,
     search,
     validation,
+    webhooks,
 )
 from src.core.config import get_settings
 from src.core.db import SessionLocal
@@ -63,8 +67,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for module in (auth, organization, document, config, search, matrix, plans, validation, review, progress, impact, reports, genai):
+for module in (
+    auth, organization, document, config, search, matrix, plans, validation,
+    review, progress, impact, reports, genai, copilot, sandbox, certificates, webhooks
+):
     app.include_router(module.router)
+
 
 
 @app.exception_handler(AppError)

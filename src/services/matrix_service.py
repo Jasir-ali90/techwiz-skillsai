@@ -452,6 +452,77 @@ class MatrixService:
             "requirements": items,
         }
 
+    async def skill_tree(self, job_role_id: uuid.UUID) -> dict:
+        """Constructs a hierarchical DAG skill tree for interactive visual graphing."""
+        matrix = await self.role_matrix(job_role_id)
+        reqs = matrix["requirements"]
+
+        code_to_prereqs = {r["requirement_code"]: set(r["prerequisites"]) for r in reqs}
+        tiers: dict[str, int] = {}
+
+        def get_tier(code: str, visited: set) -> int:
+            if code in tiers:
+                return tiers[code]
+            if code in visited:
+                return 0
+            visited.add(code)
+            prereqs = code_to_prereqs.get(code, set())
+            if not prereqs:
+                tiers[code] = 0
+                return 0
+            tier = 1 + max((get_tier(p, visited.copy()) for p in prereqs if p in code_to_prereqs), default=-1)
+            tiers[code] = tier
+            return tier
+
+        for r in reqs:
+            get_tier(r["requirement_code"], set())
+
+        nodes = []
+        edges = []
+        competency_groups: dict[str, list] = {}
+
+        for r in reqs:
+            code = r["requirement_code"]
+            tier = tiers.get(code, 0)
+            comp = r["competency"] or "General"
+            competency_groups.setdefault(comp, []).append(code)
+
+            nodes.append({
+                "id": code,
+                "label": r["statement"][:60] + ("..." if len(r["statement"]) > 60 else ""),
+                "full_statement": r["statement"],
+                "competency": comp,
+                "priority": r["priority"],
+                "is_mandatory": r["is_mandatory"],
+                "requirement_type": r["requirement_type"],
+                "deadline_days": r["deadline_days"],
+                "tier": tier,
+                "source_doc": r["source_document_code"],
+                "source_section": r["source_section_id"],
+                "prerequisites": r["prerequisites"],
+            })
+
+            for p in r["prerequisites"]:
+                if p in code_to_prereqs:
+                    edges.append({
+                        "id": f"{p}->{code}",
+                        "source": p,
+                        "target": code,
+                        "label": "unlocks",
+                    })
+
+        return {
+            "role_title": matrix["role_title"],
+            "role_code": matrix["role_code"],
+            "total_nodes": len(nodes),
+            "total_edges": len(edges),
+            "max_tier": max(tiers.values(), default=0),
+            "competencies": list(competency_groups.keys()),
+            "nodes": nodes,
+            "edges": edges,
+        }
+
+
     async def summary(self) -> dict:
         requirements = await self.requirements.active()
         role_counts = await self.mappings.counts_by_role()

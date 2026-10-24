@@ -8,6 +8,7 @@ import { GENERATORS, REVIEWERS, STAFF, useAuth, type UserType } from '../lib/aut
 import { applyTheme, getTheme, type Theme } from '../lib/theme'
 import { Logo } from './Logo'
 import { Alert, Avatar, humanize } from './ui'
+import { CopilotWidget } from './CopilotWidget'
 
 type NavItem = { to: string; label: string; icon: LucideIcon; roles?: UserType[] }
 const NAV: { title: string; items: NavItem[] }[] = [
@@ -132,7 +133,9 @@ export function Layout() {
         <main className="content" key={location.pathname}>
           <Outlet />
         </main>
+        <CopilotWidget />
       </div>
+
     </div>
   )
 }

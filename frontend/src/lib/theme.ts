@@ -5,9 +5,9 @@ const KEY = 'skillsprint.theme'
 export function getTheme(): Theme {
   try {
     const t = localStorage.getItem(KEY)
-    return t === 'light' || t === 'dark' ? t : 'system'
+    return t === 'light' || t === 'dark' || t === 'system' ? t : 'dark'
   } catch {
-    return 'system'
+    return 'dark'
   }
 }
 
